@@ -111,7 +111,7 @@ class TranslatorEngine:
         batch_target_chars = 3000
         max_retries = 5
 
-        if not api_key:
+        if not api_key and model != "custom-local-llm":
             self.log("API Key is missing!", "ERROR")
             self.is_running = False
             return
@@ -259,25 +259,33 @@ class TranslatorEngine:
                         reply = res.json()["content"][0]["text"].strip()
 
                     else:
-                        # OpenAI / DeepSeek format
+                        # OpenAI / DeepSeek / Local LLM format
+                        url = "https://api.openai.com/v1/chat/completions"
+                        actual_model = model
+                        
                         if model.startswith("deepseek"):
                             url = "https://api.deepseek.com/chat/completions"
-                        else:
-                            url = "https://api.openai.com/v1/chat/completions"
+                        elif model == "custom-local-llm":
+                            url = config.get("base_url", "http://localhost:1234/v1/chat/completions")
+                            actual_model = config.get("custom_model", "llama-3-8b")
                             
                         headers = {
                             "Authorization": f"Bearer {api_key}",
                             "Content-Type": "application/json"
                         }
+                        # Local LLMs might not need Authorization, but passing it usually doesn't hurt.
+                        if not api_key and model == "custom-local-llm":
+                            headers["Authorization"] = "Bearer dummy_key"
+                            
                         payload = {
-                            "model": model,
+                            "model": actual_model,
                             "messages": [
                                 {"role": "system", "content": final_system_prompt},
                                 {"role": "user", "content": user_prompt}
                             ],
                             "temperature": 0.3,
                         }
-                        if model.startswith("gpt-4") or model.startswith("deepseek"):
+                        if model.startswith("gpt-4") or model.startswith("deepseek") or model == "custom-local-llm":
                             payload["max_tokens"] = 8192
                             
                         res = requests.post(url, json=payload, headers=headers, timeout=120)

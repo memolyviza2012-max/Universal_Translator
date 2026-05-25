@@ -60,11 +60,19 @@ class TranslatorApp(ctk.CTk):
             "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-chat", "deepseek-reasoner",
             # Anthropic Claude (2025-2026)
             "claude-opus-4.7", "claude-sonnet-4.6", "claude-haiku-4.5", "claude-3-5-sonnet-20241022",
-            # OpenAI
-            "gpt-4o", "gpt-4o-mini", "o1-mini", "o3-mini"
+            # OpenAI / Local
+            "gpt-4o", "gpt-4o-mini", "o1-mini", "o3-mini", "custom-local-llm"
         ]
         
         ctk.CTkOptionMenu(settings_frame, variable=self.model_var, values=all_models).grid(row=2, column=1, padx=10, pady=5, sticky="w")
+
+        ctk.CTkLabel(settings_frame, text="Base URL (Local LLM):").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        self.base_url_var = tk.StringVar(value="http://localhost:1234/v1/chat/completions")
+        ctk.CTkEntry(settings_frame, textvariable=self.base_url_var, width=300).grid(row=3, column=1, padx=10, pady=5)
+        
+        ctk.CTkLabel(settings_frame, text="Custom Model Name:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        self.custom_model_var = tk.StringVar(value="llama-3-8b")
+        ctk.CTkEntry(settings_frame, textvariable=self.custom_model_var, width=300).grid(row=4, column=1, padx=10, pady=5)
 
         # 3. Glossary Frame
         glossary_frame = ctk.CTkFrame(self)
@@ -130,6 +138,8 @@ class TranslatorApp(ctk.CTk):
                     api_data = data.get("api_settings", {})
                     self.api_key_var.set(api_data.get("api_key", ""))
                     self.model_var.set(api_data.get("model", "deepseek-chat"))
+                    self.base_url_var.set(api_data.get("base_url", "http://localhost:1234/v1/chat/completions"))
+                    self.custom_model_var.set(api_data.get("custom_model", "llama-3-8b"))
                     
                     file_data = data.get("file_settings", {})
                     self.input_file_var.set(file_data.get("input_csv", ""))
@@ -154,7 +164,9 @@ class TranslatorApp(ctk.CTk):
         data = {
             "api_settings": {
                 "api_key": self.api_key_var.get(),
-                "model": self.model_var.get()
+                "model": self.model_var.get(),
+                "base_url": self.base_url_var.get(),
+                "custom_model": self.custom_model_var.get()
             },
             "file_settings": {
                 "input_csv": self.input_file_var.get(),
@@ -179,6 +191,8 @@ class TranslatorApp(ctk.CTk):
         config = {
             "api_key": self.api_key_var.get(),
             "model": self.model_var.get(),
+            "base_url": self.base_url_var.get(),
+            "custom_model": self.custom_model_var.get(),
             "input_csv": self.input_file_var.get(),
             "output_csv": self.output_file_var.get(),
             "canary_words": self.canary_var.get(),
