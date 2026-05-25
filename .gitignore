@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+*.spec
+.env
+config.json
+output_translated.csv
+input.csv
+.pytest_cache/
