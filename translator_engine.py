@@ -73,7 +73,9 @@ class TranslatorEngine:
     def save_checkpoint(self, master_dict, keys_order, filepath):
         tmp_file = filepath + ".tmp"
         try:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            out_dir = os.path.dirname(filepath)
+            if out_dir:
+                os.makedirs(out_dir, exist_ok=True)
             with open(tmp_file, 'w', encoding='utf-8') as f:
                 for k in keys_order:
                     val = master_dict.get(k, "")
